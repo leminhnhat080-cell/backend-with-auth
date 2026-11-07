@@ -2,87 +2,85 @@
 
 Express + TypeScript + MongoDB (Mongoose).
 
-## Bat dau
+## Bắt đầu
+
 ```bash
 npm install
-cp .env.example .env     # Windows PowerShell: Copy-Item .env.example .env
-# Dien gia tri that vao .env (hoac dung file .env duoc gui rieng - KHONG commit)
-npm run db:check         # kiem tra ket noi MongoDB
-npm run dev              # http://localhost:4000
+cp .env.example .env        # Windows PowerShell: Copy-Item .env.example .env
+npm run db:check            # Kiểm tra kết nối MongoDB
+npm run dev                 # http://localhost:4000
 ```
 
 ## Scripts
-| Script | Tac dung |
+| Script | Tác dụng |
 |---|---|
-| `npm run dev` | Chay development (tu reload) |
-| `npm run build` | Bien dich TypeScript -> `dist/` |
-| `npm start` | Chay production tu `dist/` (can `npm run build` truoc) |
-| `npm run typecheck` | Kiem tra kieu, khong sinh file |
-| `npm run db:check` | Kiem tra ket noi MongoDB (khong in mat khau) |
-| `npm run seed` | Tao tai khoan demo admin/manager/staff/customer @hsushoe.test (dev/test) |
-| `npm test` | Unit + API test (nhanh, khong can MongoDB) |
-| `npm run test:integration` | Integration test voi MongoDB that (unique index, race condition) |
+| `npm run dev` | Chạy development (tự reload) |
+| `npm run build` | Biên dịch TypeScript -> dist/ |
+| `npm start` | Chạy production từ dist/ (cần npm run build trước) |
+| `npm run typecheck` | Kiểm tra kiểu, không sinh file |
+| `npm run db:check` | Kiểm tra kết nối MongoDB (không in mật khẩu) |
+| `npm run seed` | Tạo tài khoản demo admin/manager/staff/customer @hsushoe.test (dev/test) |
+| `npm test` | Unit + API test (nhanh, không cần MongoDB) |
+| `npm run test:integration` | Integration test với MongoDB thật (unique index, race condition) |
 
-## Bien moi truong
-| Bien | Mo ta |
+## Biến môi trường
+| Biến | Mô tả |
 |---|---|
-| `PORT` | Cong API (mac dinh 4000) |
-| `MONGODB_URI` | Chuoi ket noi MongoDB |
-| `CORS_ORIGIN` | Origin FE duoc phep, cach nhau bang dau phay |
-| `JWT_SECRET` | Khoa ky JWT, >= 32 ky tu (chi `npm run dev/start/seed` can, `db:check` khong can) |
-| `JWT_EXPIRES_IN` | Thoi han token, mac dinh `8h` |
-| `BCRYPT_COST` | Do manh bam mat khau, mac dinh `10` |
-| `SEED_PASSWORD` | Mat khau chung cho tai khoan demo (`npm run seed`) |
+| `PORT` | Cổng API (mặc định 4000) |
+| `MONGODB_URI` | Chuỗi kết nối MongoDB |
+| `CORS_ORIGIN` | Origin FE được phép, cách nhau bằng dấu phẩy |
+| `JWT_SECRET` | Khóa ký JWT, >= 32 ký tự (chỉ npm run dev/start/seed cần, db:check không cần) |
+| `JWT_EXPIRES_IN` | Thời hạn token, mặc định '8h' |
+| `BCRYPT_COST` | Độ mạnh băm mật khẩu, mặc định '10' |
+| `SEED_PASSWORD` | Mật khẩu chung cho tài khoản demo ('npm run seed') |
 
 ## Endpoint
-- `GET /health` - kiem tra service song, kem trang thai DB
-- `GET /api` - thong tin API
-- `POST /api/auth/register` - dang ky Customer (role luon CUSTOMER) -> 201 / 400 / 409
-- `POST /api/auth/login` - dang nhap -> 200 `{ token, account }` / 401 (loi chung)
-- `POST /api/auth/logout` - can token -> 204 (frontend xoa token)
-- `GET /api/auth/me` - can token -> ho so cua chinh minh
-- Route khong ton tai -> `404 { error: { code: "NOT_FOUND", ... } }`
-- Loi: `{ "error": { "code", "message", "details?" } }`; gui token: `Authorization: Bearer <token>`
+- `GET /health` - kiểm tra service sống, kèm trạng thái DB
+- `GET /api` - thông tin API
+- `POST /api/auth/register` - đăng ký Customer (role luôn CUSTOMER) -> 201 / 400 / 409
+- `POST /api/auth/login` - đăng nhập -> 200 { token, account } / 401 ('lỗi chung')
+- `POST /api/auth/logout` - cần token -> 204 (frontend xóa token)
+- `GET /api/auth/me` - cần token -> hồ sơ của chính mình
+- Route không tồn tại -> `404 { error: { code: "NOT_FOUND", ... } }`
+- Lỗi: `{ "error": { "code", "message", "details?" } }`; gửi token: `Authorization: Bearer <token>`
 
-## Phan quyen cho module khac (P02..P07)
+## Phân quyền cho module khác (P02..P07)
 ```ts
 import { createAuthenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
 import { canViewOrder } from "../domain/policy";
 router.patch("/orders/:id/confirm", authenticate, authorize("MANAGER", "ADMIN"), handler);
-// trong handler: kiem tra pham vi du lieu bang domain/policy.ts
+// trong handler: kiểm tra phạm vi dữ liệu bằng domain/policy.ts
 ```
 
-## Cau truc
+## Cấu trúc
 ```
 src/
-  app.ts            tao Express app (CORS, JSON, routes, loi)
-  server.ts         entry point: doc env, noi MongoDB, listen
-  config/env.ts     doc & kiem tra bien moi truong
+  app.ts            tạo Express app (CORS, JSON, routes, i)
+  server.ts         entry point: đọc env, nối MongoDB, listen
+  config/env.ts     đọc & kiểm tra biến môi trường
   routes/           health.ts, api.ts (mount module P01..P07), auth.ts
   controllers/      authController.ts
   validators/       auth.ts (zod)
-  domain/           account, normalize, policy (phan quyen cap doi tuong)
+  domain/           account, normalize, policy (phân quyền cấp đối tượng)
   application/      registerCustomer, login, getMe, ports, errors
   adapters/         Mongoose model/repository, bcrypt, JWT
   middleware/       authenticate (401), authorize (403), notFound, errorHandler
-scripts/check-db.ts kiem tra ket noi MongoDB; scripts/seed.ts tai khoan demo
+scripts/check-db.ts kiểm tra kết nối MongoDB; scripts/seed.ts tài khoản demo
 tests/              health, 404, loi JSON, CORS, env, auth (AC1-AC6)
-tests/integration/  test voi MongoDB that (index, race condition)
+tests/integration/  test với MongoDB thật (index, race condition)
 ```
 
-## Integration test (MongoDB that)
+## Integration test (MongoDB thật)
 ```bash
 npm run test:integration
 ```
-- Mac dinh dung MongoDB **in-memory** (`mongodb-memory-server`); **lan dau can mang** de tai binary mongod, sau do duoc cache.
-- Hoac dung Mongo local/Docker: dat `MONGODB_URI_TEST=mongodb://localhost:27017/hsu_test`.
-  Ten database **bat buoc chua chu `test`** vi test xoa du lieu collection `accounts`.
-- Test **khong doc `MONGODB_URI` trong `.env`**, nen khong the xoa nham DB that/Atlas.
-- Noi dung: kiem tra unique index (email, username partial), 10 request dang ky dong thoi chi 1 thanh cong,
-  mat khau duoc bam, `passwordHash` khong lo, tai khoan bi khoa mat hieu luc.
+- Mặc định dùng MongoDB in-memory (mongodb-memory-server); lần đầu cần mạng để tải binary mongod, sau đó được cache.
+- Hoặc dùng Mongo local/Docker: đặt MONGODB_URI_TEST=mongodb://localhost:27017/hsu_test. Tên database bắt buộc chứa chữ test vì test xóa dữ liệu collection accounts.
+- Test không đọc MONGODB_URI trong .env, nên không thể xóa nhầm DB thật/Atlas.
+- Nội dung: kiểm tra unique index (email, username partial), 10 request đăng ký đồng thời chỉ 1 thành công, mật khẩu được băm, passwordHash không lộ, tài khoản bị khóa mất hiệu lực.
 
-## Bao mat
-- `.env` da nam trong `.gitignore`; chi commit `.env.example`.
-- Truoc khi commit: `git status` khong duoc thay `.env`. Kiem tra: `git check-ignore -v .env`.
-- Neu lo mat khau DB (commit nham, dang len cong khai) -> doi mat khau tren MongoDB Atlas ngay.
+## Bảo mật
+- `.env` đã nằm trong '.gitignore'; chỉ commit '.env.example'.
+- Trước khi commit: `git status` không được thấy `.env`. Kiểm tra: `git check-ignore -v .env`.
+- Nếu lỡ lộ mật khẩu DB (commit nhầm, đăng lên công khai) -> đổi mật khẩu trên MongoDB Atlas ngay.
