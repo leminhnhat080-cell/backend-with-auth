@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Bien moi truong & thong tin nhay cam (chi .env.example duoc commit)
+.env
+.env.*
+!.env.example
+
+# Credential MongoDB / khoa bi mat
+*.pem
+*.key
+*.p12
+mongodb-credentials*
+mongo-credentials*
+credentials*.json
+service-account*.json
+secrets/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
